@@ -1,0 +1,372 @@
+//
+//DS_calculator
+//
+//
+
+#include <iostream>
+#include <string>
+#include <math.h>
+#include <algorithm>
+using namespace std;
+
+int m_pre = 0;
+int m_pos = 1;
+
+typedef struct stack 
+{
+    struct stack *next;
+    long long int val;
+} Stack;
+
+class array_stack
+{
+    private:
+        int top,capacity;
+        Stack *head;
+    public:
+        array_stack():top(-1),capacity(5){
+            head = NULL;
+        }
+        void Push(long long int x);
+        void Pop();
+        bool IsEmpty();
+        long long int get_top();
+        int get_size();
+};
+
+
+void array_stack::Push(long long int x){
+    Stack *newnode = new Stack;
+    newnode->val = x;
+    newnode->next = NULL;
+    Stack *tmp = head;
+    if (head == NULL){
+        head = newnode;
+        return;
+    }
+    while(tmp->next != NULL)
+        tmp = tmp->next;
+    tmp->next = newnode;
+}
+
+void array_stack::Pop(){
+    Stack *tmp = head;
+    if (tmp && !tmp->next){
+        head = NULL;
+        delete tmp;
+        return;
+    }
+    if (tmp){
+        while (tmp->next->next != NULL)
+            tmp = tmp->next;
+        Stack *tail = tmp->next;
+        tmp->next = NULL;
+        delete tail;
+    }
+}
+
+bool array_stack::IsEmpty(){
+    if (head == NULL){
+        return true;
+    }
+    return false; 
+}
+
+
+long long int array_stack::get_top(){
+    Stack *tmp = head;
+    while (tmp->next != NULL)
+        tmp = tmp->next;
+    return tmp->val;
+}
+
+int prior(char check){
+    if (check == '*' || check == '/')
+        return 2;
+    else if (check == '+' || check == '-')
+        return 1;
+    else
+        return -1;
+}
+
+string creat_postfix(string s,int mode){
+    string num;
+    array_stack op;
+    for (auto i : s){
+        if (iswalnum(i))
+            num += i;
+        else if(i == '(')
+            op.Push(i);
+        else if (i == ')'){
+            while (!op.IsEmpty() && op.get_top() != '('){
+                num += op.get_top();
+                op.Pop();
+            }
+            op.Pop();
+        }
+        else{
+        	if(mode == 1){
+	            while (!op.IsEmpty() && (prior(i) <= prior(op.get_top()))){
+	                num += op.get_top();
+	                op.Pop();
+	            }
+	        }
+	        else{
+	        	while (!op.IsEmpty() && (prior(i) < prior(op.get_top()))){
+	                num += op.get_top();
+	                op.Pop();
+	            }
+	        }
+            op.Push(i);
+        }
+    }
+    while(!op.IsEmpty()){
+        num += op.get_top();
+        op.Pop();
+    }
+    return num;
+}
+
+long long int operation(char op, long long int x, long long int y){
+    if (op == '+')
+        return x + y;
+    if (op == '-')
+        return x - y;
+    if (op == '*')
+        return x * y;
+    if (op == '/')
+        return x / y;
+    return -1;
+}
+
+long long int calculate(string s){
+    array_stack st;
+    long long int oprand1,oprand2;
+    for(auto i : s){
+        if (isalnum(i))
+            st.Push(i-'0');
+        else{
+            oprand2 = st.get_top();
+            st.Pop();
+            oprand1 = st.get_top();
+            st.Pop();
+            st.Push(operation(i, oprand1, oprand2));
+        }
+    }
+    return st.get_top();
+}
+
+int main(void){
+    string post_s;
+    string s;
+    string prefix;
+    string tr_infix;
+    while(cin >> s){
+	    tr_infix = s;
+	    reverse(tr_infix.begin(), tr_infix.end());
+	    for(int i = 0; i < tr_infix.length(); i++){
+	        if (tr_infix[i] == '(')
+	            tr_infix[i] = ')';
+	        else if (tr_infix[i] == ')')
+	            tr_infix[i] = '(';
+	    }
+	    prefix = creat_postfix(tr_infix,m_pre);
+	    post_s = creat_postfix(s,m_pos);
+	    reverse(prefix.begin(),prefix.end());
+	    cout << post_s << '\n';
+	    cout << prefix << '\n';
+	    cout << calculate(post_s) << '\n';
+	}
+}
+
+//
+//
+//DS_linked_list
+
+#include <iostream>
+
+using namespace std;
+
+typedef struct node
+{
+	int data;
+	struct node *next;
+} Node;
+
+class queue_list
+{
+	private:
+		Node *head;
+		int capacity;
+	public:
+		queue_list():head(NULL), capacity(5){
+
+		};
+		void Push_back(int x);
+	    void Pop();
+	    bool IsEmpty();
+	    int getFront();
+	    int getBack();
+	    void print_info();
+};
+void queue_list::Push_back(int x){
+	Node *tmp = head;
+	Node *newnode = new Node;
+	newnode->data = x;
+	newnode->next = NULL;
+	if (head == NULL){
+		head = newnode;
+		return;
+	}
+	while (tmp->next != NULL)
+		tmp = tmp->next;
+	tmp->next = newnode;
+}
+
+void queue_list::Pop(){
+	if (head){
+		Node *tmp = head;
+		head = head->next;
+		delete tmp;
+	}
+}
+
+bool queue_list::IsEmpty(){
+	if (!head)
+		return true;
+	return false;
+}
+
+int queue_list::getFront(){
+	if (head)
+		return head->data;
+	return -1;
+}
+
+int queue_list::getBack(){
+	Node *tmp = head;
+	if (head){
+		while(tmp->next != NULL)
+			tmp = tmp->next;
+		return tmp->data;
+	}
+	return -1;
+}
+
+void queue_list::print_info(){
+	printf("front = %d, back = %d\n",getFront(),getBack());
+}
+
+int main(){
+	queue_list q;
+	q.Push_back(1);
+	q.Push_back(2);
+	q.Push_back(3);
+	q.Push_back(3);
+	q.Push_back(3);
+	q.Push_back(1);
+	q.Push_back(2);
+	q.Push_back(3);
+	q.Push_back(3);
+	q.Push_back(3);
+	
+
+
+
+	while (!q.IsEmpty()){
+		printf("%d ",q.getFront());
+		q.Pop();
+	}
+
+	return 0;
+}
+
+
+// DS_train_problem
+
+#include <iostream>
+using namespace std;
+class Stack
+{
+    private:
+        int array[1000000];
+        int top;
+    public:
+        Stack(){
+            top = -1;
+        };
+        bool Isempty();
+        void Pop();
+        void Push(int x);
+        int Gettop();
+};
+
+bool Stack::Isempty(){
+    if(top == -1)
+        return true;
+    return false;
+}
+
+void Stack::Pop(){
+    if(Isempty()){
+        return;
+    }
+    else
+        top--;
+}
+
+void Stack::Push(int x){
+    top++;
+    array[top] = x;
+}
+
+int Stack::Gettop(){
+    if(Isempty())
+        return -1;
+    return array[top];
+}
+
+int main(){
+    int n;
+    while(scanf("%d",&n) != EOF){
+    	Stack s;
+        int index = 1;
+        int index_t = 1;
+        int arr[100000];
+        int target[100000];
+        for(int i = 1; i <= n; i++)
+            arr[i] = i;
+        for(int i = 1; i <= n; i++)
+            scanf("%d",&target[i]);
+        while(index_t <= n){
+        	//printf("d = %d t = %d\n",index,index_t );
+           if (s.Gettop() == target[index_t]){
+           	   //printf("1, top = %d\n",s.Gettop() );
+               s.Pop();
+               index_t++;
+           }
+          else if(index <= n && arr[index] != target[index_t]){
+          	  //printf("2, push %d\n",arr[index]);
+              s.Push(arr[index]);
+              index++;
+           }
+           else if(arr[index] == target[index_t]){
+           	   //printf("3\n");
+               index++;
+               index_t++;
+           }
+           else
+           	break;
+        }
+        if (s.Isempty())
+            printf("YES\n");
+        else{
+        	while(!s.Isempty()){
+        		//printf("%d\n",s.Gettop());
+        		s.Pop();
+        	}
+            printf("NO\n");
+        }
+    }
+}
+
